@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Discount Savings Forecast</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body class="p-5">
+    <div class="container">
+      <h1 class="mb-4">Forecast Your Weekly Savings</h1>
+      <form id="forecastForm">
+        <div class="row">
+          {% for item, details in products.items() %}
+          <div class="col-md-6 mb-3">
+            <label class="form-label">{{ item.title() }} ({{ details.store }}) - ${{ details.price }} <span class="text-success">(-${{ details.discount }} discount)</span></label>
+            <input type="number" class="form-control" name="{{ item }}" min="0" placeholder="How many per week?">
+          </div>
+          {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary">Calculate Forecast</button>
+      </form>
+      <hr>
+      <h3 id="result" class="mt-4"></h3>
+    </div>
+
+    <script>
+      document.getElementById('forecastForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const inputs = e.target.elements;
+        let frequency = {};
+        for (let input of inputs) {
+          if (input.name && input.value) {
+            frequency[input.name] = parseInt(input.value);
+          }
+        }
+
+        const response = await fetch('/forecast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ frequency })
+        });
+        const data = await response.json();
+        document.getElementById('result').innerText = `Estimated Weekly Savings: $${data.forecasted_savings}`;
+      });
+    </script>
+  </body>
+</html>
